@@ -1,0 +1,13 @@
+{
+    "require": {
+        "slim/slim": "^3.5",
+        "vlucas/phpdotenv": "^2.4",
+        "vlucas/valitron": "^1.2",
+        "glenn/g-core" : "0.0.1"
+    },
+    "autoload" : {
+        "psr-4" : {
+            "G\\Services\\User\\" : "src"
+        }
+    }
+}
