@@ -11,20 +11,33 @@ $app = new Slim\App();
 
 $container = $app->getContainer();
 
+$container['pdo'] = function ($c) {
+    $host = getenv('DBHOST');
+    $charset = getenv('DBCHARSET');
+    $username = getenv('DBUSERNAME');
+    $password = getenv('DBPASSWORD');
+    $name = getenv('DBNAME');
+    $db = new PDO("mysql:host=$host;dbname=$name;charset=$charset", $username, $password);
+    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+    return $db;
+};
+
+
 $container[ReadUser::class] = function ($c) {
-  return new ReadUser();
+  return new ReadUser($c['pdo']);
 };
 
 $container[DeleteUser::class] = function ($c) {
-    return new DeleteUser();
+    return new DeleteUser($c['pdo']);
 };
 
 $container[CreateUser::class] = function ($c) {
-    return new CreateUser();
+    return new CreateUser($c['pdo']);
 };
 
 $container[UpdateUser::class] = function ($c) {
-    return new DeleteUser();
+    return new DeleteUser($c['pdo']);
 };
 
 $app->get('/user/{id}', ReadUser::class);
