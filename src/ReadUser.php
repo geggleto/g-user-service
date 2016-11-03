@@ -13,11 +13,37 @@ use G\Core\Http\EndpointInterface;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
+/**
+ * Class ReadUser
+ *
+ * @package G\Services\User
+ */
 class ReadUser implements EndpointInterface
 {
+    /** @var \PDO */
+    protected $db;
 
+    /**
+     * ReadUser constructor.
+     * @param \PDO $pdo
+     */
+    public function __construct(\PDO $pdo)
+    {
+        $this->db = $pdo;
+    }
+
+    /**
+     * @param Request $request
+     * @param Response $response
+     * @param array $args
+     *
+     * @return Response
+     */
     public function __invoke(Request $request, Response $response, array $args)
     {
-        // TODO: Implement __invoke() method.
+        $statement = $this->db->prepare("select * from `users` where id = ?");
+        $statement->execute(array($args['id']));
+        $result = $statement->fetch();
+        return $response->withJson($result);
     }
 }

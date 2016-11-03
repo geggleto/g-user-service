@@ -23,9 +23,6 @@ class CreateUser implements EndpointInterface
 {
     /** @var \PDO */
     protected $db;
-
-    protected $errors;
-
     /**
      * CreateUser constructor.
      * @param \PDO $pdo
@@ -33,7 +30,6 @@ class CreateUser implements EndpointInterface
     public function __construct(\PDO $pdo)
     {
         $this->db = $pdo;
-        $this->errors = array();
     }
 
     /**
@@ -46,7 +42,9 @@ class CreateUser implements EndpointInterface
     public function __invoke(Request $request, Response $response, array $args)
     {
         $body = $request->getParsedBody();
-        if ($this->validate($body)) {
+        $userValidator = new UserValidator($body);
+
+        if ($userValidator->validate()) {
             try {
                 $hashedPassword = password_hash($body['password'], PASSWORD_BCRYPT);
 
@@ -60,7 +58,15 @@ class CreateUser implements EndpointInterface
                 );
 
                 if ($statement->execute($obj)) {
-                    return $response->withJson($obj);
+
+                    return $response->withJson(array(
+                        "id" => $this->db->lastInsertId(),
+                        "name" => $body['name'],
+                        "username" => $body['username'],
+                        "password" => $hashedPassword,
+                        "email" => $body['email']
+                    ));
+
                 } else {
                     return $response->withJson(array("message" => "User already exists"), 400);
                 }
@@ -70,22 +76,7 @@ class CreateUser implements EndpointInterface
             }
 
         } else {
-            return $response->withJson($this->errors, 400);
+            return $response->withJson($userValidator->getErrors(), 400);
         }
-    }
-
-    /**
-     * @param array $body
-     * @return bool
-     */
-    public function validate(array $body) {
-        $validator = new Validator($body);
-        $validator->rule('required', array('username','password', 'email', 'name'));
-        $validator->rule('email', 'email');
-        $validator->rule('lengthBetween', array('username', 'password'), 6, 64);
-
-        $this->errors = $validator->errors();
-
-        return $validator->validate();
     }
 }
