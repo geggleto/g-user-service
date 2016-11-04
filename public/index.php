@@ -49,6 +49,7 @@ $app->delete('/user/{id}', DeleteUser::class);
 $app->post('/user', CreateUser::class);
 $app->put('/user/{id}', UpdateUser::class);
 
+$app->add(new \G\Core\Middleware\AuthMiddleware());
 
 
 $app->run();
