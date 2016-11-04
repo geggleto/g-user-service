@@ -55,7 +55,7 @@ $container[CreateUser::class] = function ($c) {
 };
 
 $container[UpdateUser::class] = function ($c) {
-    return new UpdateUser($c[UpdateBuilder::class]);
+    return new UpdateUser("users", $c[UpdateBuilder::class], $c[UserValidator::class] );
 };
 
 $app->get('/user/{id}', ReadUser::class);
