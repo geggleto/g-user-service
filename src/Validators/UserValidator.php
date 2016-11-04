@@ -6,9 +6,10 @@
  * Time: 10:10 AM
  */
 
-namespace G\Services\User;
+namespace G\Services\User\Validators;
 
 
+use G\Core\Services\ValidatorInterface;
 use Valitron\Validator;
 
 /**
@@ -16,7 +17,7 @@ use Valitron\Validator;
  *
  * @package G\Services\User
  */
-class UserValidator
+class UserValidator implements ValidatorInterface
 {
     /** @var Validator  */
     protected $validator;
@@ -27,10 +28,13 @@ class UserValidator
     /**
      * UserValidator constructor.
      *
-     * @param array $data
      */
-    public function __construct(array $data)
+    public function __construct()
     {
+        $this->validator = null;
+    }
+
+    public function setData(array $data) {
         $this->validator = new Validator($data);
         $this->validator->rule('required', array('username','password', 'email', 'name'));
         $this->validator->rule('email', 'email');

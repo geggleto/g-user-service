@@ -10,30 +10,24 @@ namespace G\Services\User;
 
 
 use G\Core\Db\InsertBuilder;
-use G\Core\Http\EndpointInterface;
+use G\Core\Http\CreateObjectEndpoint;
+use G\Core\Services\ValidatorInterface;
+use G\Services\User\Validators\UserValidator;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+
 
 /**
  * Class CreateUser
  *
  * @package G\Services\User
  */
-class CreateUser implements EndpointInterface
+class CreateUser extends CreateObjectEndpoint
 {
 
-    /** @var InsertBuilder  */
-    protected $builder;
-
-
-    /**
-     * CreateUser constructor.
-     *
-     * @param InsertBuilder $builder
-     */
-    public function __construct(InsertBuilder $builder)
+    public function __construct(InsertBuilder $builder, ValidatorInterface $validator)
     {
-        $this->builder = $builder;
+        parent::__construct($builder, $validator);
     }
 
     /**
@@ -45,41 +39,12 @@ class CreateUser implements EndpointInterface
      */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args)
     {
-        /** @var $response \Slim\Http\Response */
+        $this->response = $response;
 
-        $body = $request->getParsedBody();
-        $userValidator = new UserValidator($body);
-
-        if ($userValidator->validate()) {
-            try {
-                $hashedPassword = password_hash($body['password'], PASSWORD_BCRYPT);
-
-                if ($this->builder
-                    ->setTable('users')
-                    ->addColumn('name', $body['name'])
-                    ->addColumn('username', $body['username'])
-                    ->addColumn('password', $hashedPassword)
-                    ->addColumn('email', $body['email'])
-                    ->execute()) {
-
-                    return $response->withJson(array(
-                        "id" => $this->builder->getDb()->lastInsertId(),
-                        "name" => $body['name'],
-                        "username" => $body['username'],
-                        "password" => $hashedPassword,
-                        "email" => $body['email']
-                    ));
-
-                } else {
-                    return $response->withJson(array("message" => "User already exists"), 400);
-                }
-
-            } catch (\Exception $e) {
-                return $response->withJson(array("message" => $e->getMessage()), 500);
-            }
-
-        } else {
-            return $response->withJson($userValidator->getErrors(), 400);
-        }
+        return $this->createObject(
+            array("password" => function ($password) { return password_hash($password, PASSWORD_BCRYPT); }), //Add mutators
+            "users", //where are we putting the info - what table
+            $request->getParsedBody() //What data are we persisting
+        );
     }
 }

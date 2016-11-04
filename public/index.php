@@ -6,6 +6,7 @@ use G\Services\User\CreateUser;
 use G\Services\User\DeleteUser;
 use G\Services\User\ReadUser;
 use G\Services\User\UpdateUser;
+use G\Services\User\Validators\UserValidator;
 
 require __DIR__.'/../vendor/autoload.php';
 
@@ -29,6 +30,10 @@ $container['pdo'] = function ($c) {
     return $db;
 };
 
+$container[UserValidator::class] = function ($c) {
+    return new UserValidator();
+};
+
 $container[InsertBuilder::class] = function ($c) {
     return new InsertBuilder($c['pdo']);
 };
@@ -46,7 +51,7 @@ $container[DeleteUser::class] = function ($c) {
 };
 
 $container[CreateUser::class] = function ($c) {
-    return new CreateUser($c[InsertBuilder::class]);
+    return new CreateUser($c[InsertBuilder::class], $c[UserValidator::class] );
 };
 
 $container[UpdateUser::class] = function ($c) {
@@ -58,7 +63,7 @@ $app->delete('/user/{id}', DeleteUser::class);
 $app->post('/user', CreateUser::class);
 $app->put('/user/{id}', UpdateUser::class);
 
-$app->add(new \G\Core\Middleware\AuthMiddleware());
+//$app->add(new \G\Core\Middleware\AuthMiddleware());
 
 
 $app->run();

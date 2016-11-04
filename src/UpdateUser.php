@@ -11,6 +11,7 @@ namespace G\Services\User;
 
 use G\Core\Db\UpdateBuilder;
 use G\Core\Http\EndpointInterface;
+use G\Services\User\Validators\UserValidator;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
