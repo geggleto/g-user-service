@@ -24,10 +24,13 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 class CreateUser extends CreateObjectEndpoint
 {
+    protected $table;
 
-    public function __construct(InsertBuilder $builder, ValidatorInterface $validator)
+    public function __construct($table = "", InsertBuilder $builder, ValidatorInterface $validator)
     {
         parent::__construct($builder, $validator);
+
+        $this->table = $table;
     }
 
     /**
@@ -43,7 +46,7 @@ class CreateUser extends CreateObjectEndpoint
 
         return $this->createObject(
             array("password" => function ($password) { return password_hash($password, PASSWORD_BCRYPT); }), //Add mutators
-            "users", //where are we putting the info - what table
+            $this->table, //where are we putting the info - what table?
             $request->getParsedBody() //What data are we persisting
         );
     }

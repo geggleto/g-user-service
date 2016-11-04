@@ -51,7 +51,7 @@ $container[DeleteUser::class] = function ($c) {
 };
 
 $container[CreateUser::class] = function ($c) {
-    return new CreateUser($c[InsertBuilder::class], $c[UserValidator::class] );
+    return new CreateUser("users", $c[InsertBuilder::class], $c[UserValidator::class] );
 };
 
 $container[UpdateUser::class] = function ($c) {
