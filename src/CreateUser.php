@@ -75,7 +75,7 @@ class CreateUser implements EndpointInterface
                 }
 
             } catch (\Exception $e) {
-                return $response->withStatus(500)->write($e->getMessage());
+                return $response->withJson(array("message" => $e->getMessage()), 500);
             }
 
         } else {
