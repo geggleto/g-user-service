@@ -9,23 +9,24 @@
 namespace G\Services\User;
 
 
+use G\Core\Db\UpdateBuilder;
 use G\Core\Http\EndpointInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 class UpdateUser implements EndpointInterface
 {
-    /** @var \PDO */
-    protected $db;
+    /** @var UpdateBuilder */
+    protected $builder;
 
     /**
      * UpdateUser constructor.
      *
      * @param \PDO $pdo
      */
-    public function __construct(\PDO $pdo)
+    public function __construct(UpdateBuilder $builder)
     {
-        $this->db = $pdo;
+        $this->builder = $builder;
     }
 
     /**
@@ -45,17 +46,15 @@ class UpdateUser implements EndpointInterface
             try {
                 $hashedPassword = password_hash($body['password'], PASSWORD_BCRYPT);
 
-                $statement = $this->db->prepare('update `users` set name = ?, username = ?, password = ?, email = ? where id = ?');
+                if ($this->builder
+                    ->setTable('users')
+                    ->addColumn('name', $body['name'])
+                    ->addColumn('username', $body['username'])
+                    ->addColumn('password', $hashedPassword)
+                    ->addColumn('email', $body['email'])
+                    ->setId($args['id'])
+                    ->execute()) {
 
-                $obj = array(
-                    $body['name'],
-                    $body['username'],
-                    $hashedPassword,
-                    $body['email'],
-                    $args['id']
-                );
-
-                if ($statement->execute($obj)) {
                     return $response->withJson(array(
                         "id" => $args['id'],
                         "name" => $body['name'],
@@ -63,6 +62,7 @@ class UpdateUser implements EndpointInterface
                         "password" => $hashedPassword,
                         "email" => $body['email']
                     ));
+
                 } else {
                     return $response->withJson(array("message" => "User already exists"), 400);
                 }

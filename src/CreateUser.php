@@ -9,6 +9,7 @@
 namespace G\Services\User;
 
 
+use G\Core\Db\InsertBuilder;
 use G\Core\Http\EndpointInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -20,15 +21,19 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 class CreateUser implements EndpointInterface
 {
-    /** @var \PDO */
-    protected $db;
+
+    /** @var InsertBuilder  */
+    protected $builder;
+
+
     /**
      * CreateUser constructor.
-     * @param \PDO $pdo
+     *
+     * @param InsertBuilder $builder
      */
-    public function __construct(\PDO $pdo)
+    public function __construct(InsertBuilder $builder)
     {
-        $this->db = $pdo;
+        $this->builder = $builder;
     }
 
     /**
@@ -49,19 +54,16 @@ class CreateUser implements EndpointInterface
             try {
                 $hashedPassword = password_hash($body['password'], PASSWORD_BCRYPT);
 
-                $statement = $this->db->prepare('insert into `users` set name = ?, username = ?, password = ?, email = ?');
-
-                $obj = array(
-                    $body['name'],
-                    $body['username'],
-                    $hashedPassword,
-                    $body['email']
-                );
-
-                if ($statement->execute($obj)) {
+                if ($this->builder
+                    ->setTable('users')
+                    ->addColumn('name', $body['name'])
+                    ->addColumn('username', $body['username'])
+                    ->addColumn('password', $hashedPassword)
+                    ->addColumn('email', $body['email'])
+                    ->execute()) {
 
                     return $response->withJson(array(
-                        "id" => $this->db->lastInsertId(),
+                        "id" => $this->builder->getDb()->lastInsertId(),
                         "name" => $body['name'],
                         "username" => $body['username'],
                         "password" => $hashedPassword,
