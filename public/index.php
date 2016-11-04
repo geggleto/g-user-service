@@ -1,5 +1,7 @@
 <?php
 
+use G\Core\Db\InsertBuilder;
+use G\Core\Db\UpdateBuilder;
 use G\Services\User\CreateUser;
 use G\Services\User\DeleteUser;
 use G\Services\User\ReadUser;
@@ -27,6 +29,13 @@ $container['pdo'] = function ($c) {
     return $db;
 };
 
+$container[InsertBuilder::class] = function ($c) {
+    return new InsertBuilder($c['pdo']);
+};
+
+$container[UpdateBuilder::class] = function ($c) {
+    return new UpdateBuilder($c['pdo']);
+};
 
 $container[ReadUser::class] = function ($c) {
   return new ReadUser($c['pdo']);
@@ -37,11 +46,11 @@ $container[DeleteUser::class] = function ($c) {
 };
 
 $container[CreateUser::class] = function ($c) {
-    return new CreateUser($c['pdo']);
+    return new CreateUser($c[InsertBuilder::class]);
 };
 
 $container[UpdateUser::class] = function ($c) {
-    return new DeleteUser($c['pdo']);
+    return new UpdateUser($c[UpdateBuilder::class]);
 };
 
 $app->get('/user/{id}', ReadUser::class);
