@@ -10,8 +10,8 @@ namespace G\Services\User;
 
 
 use G\Core\Http\EndpointInterface;
-use Slim\Http\Request;
-use Slim\Http\Response;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 class UpdateUser implements EndpointInterface
 {
@@ -29,14 +29,15 @@ class UpdateUser implements EndpointInterface
     }
 
     /**
-     * @param Request $request
-     * @param Response $response
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
      * @param array $args
      *
-     * @return Response
+     * @return ResponseInterface
      */
-    public function __invoke(Request $request, Response $response, array $args)
+    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args)
     {
+        /** @var $response \Slim\Http\Response */
         $body = $request->getParsedBody();
         $userValidator = new UserValidator($body);
 
@@ -67,7 +68,7 @@ class UpdateUser implements EndpointInterface
                 }
 
             } catch (\Exception $e) {
-                return $response->withStatus(500);
+                return $response->withStatus(500)->write($e->getMessage());
             }
 
         } else {

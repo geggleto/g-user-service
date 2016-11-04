@@ -3,7 +3,7 @@
         "slim/slim": "^3.5",
         "vlucas/phpdotenv": "^2.4",
         "vlucas/valitron": "^1.2",
-        "glenn/g-core" : "0.0.1"
+        "glenn/g-core" : "0.0.2"
     },
     "autoload" : {
         "psr-4" : {

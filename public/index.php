@@ -7,17 +7,21 @@ use G\Services\User\UpdateUser;
 
 require __DIR__.'/../vendor/autoload.php';
 
-$app = new Slim\App();
+$dotenv = new Dotenv\Dotenv(__DIR__."/../");
+$dotenv->load();
+
+
+$app = new Slim\App(array("settings" => array("displayErrorDetails" => false)));
 
 $container = $app->getContainer();
 
 $container['pdo'] = function ($c) {
     $host = getenv('DBHOST');
-    $charset = getenv('DBCHARSET');
     $username = getenv('DBUSERNAME');
     $password = getenv('DBPASSWORD');
     $name = getenv('DBNAME');
-    $db = new PDO("mysql:host=$host;dbname=$name;charset=$charset", $username, $password);
+
+    $db = new PDO("mysql:host=$host;dbname=$name;", $username, $password);
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
     return $db;
@@ -44,6 +48,7 @@ $app->get('/user/{id}', ReadUser::class);
 $app->delete('/user/{id}', DeleteUser::class);
 $app->post('/user', CreateUser::class);
 $app->put('/user/{id}', UpdateUser::class);
+
 
 
 $app->run();

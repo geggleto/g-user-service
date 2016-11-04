@@ -10,8 +10,8 @@ namespace G\Services\User;
 
 
 use G\Core\Http\EndpointInterface;
-use Slim\Http\Request;
-use Slim\Http\Response;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Class DeleteUser
@@ -33,14 +33,15 @@ class DeleteUser implements EndpointInterface
     }
 
     /**
-     * @param Request $request
-     * @param Response $response
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
      * @param array $args
      *
-     * @return Response
+     * @return ResponseInterface
      */
-    public function __invoke(Request $request, Response $response, array $args)
+    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args)
     {
+        /** @var $response \Slim\Http\Response */
         $statement = $this->db->prepare("delete from `users` where id = ?");
         $statement->execute(array($args['id']));
         return $response->withJson(array("message" => $statement->rowCount()." rows affected"));
