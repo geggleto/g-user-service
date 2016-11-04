@@ -10,9 +10,8 @@ namespace G\Services\User;
 
 
 use G\Core\Db\InsertBuilder;
-use G\Core\Http\CreateObjectEndpoint;
+use G\Core\Http\IOObjectEndpoint;
 use G\Core\Services\ValidatorInterface;
-use G\Services\User\Validators\UserValidator;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -22,10 +21,18 @@ use Psr\Http\Message\ServerRequestInterface;
  *
  * @package G\Services\User
  */
-class CreateUser extends CreateObjectEndpoint
+class CreateUser extends IOObjectEndpoint
 {
+    /** @var string  */
     protected $table;
 
+    /**
+     * CreateUser constructor.
+     *
+     * @param string $table
+     * @param InsertBuilder $builder
+     * @param ValidatorInterface $validator
+     */
     public function __construct($table = "", InsertBuilder $builder, ValidatorInterface $validator)
     {
         parent::__construct($builder, $validator);

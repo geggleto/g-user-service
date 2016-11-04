@@ -10,24 +10,28 @@ namespace G\Services\User;
 
 
 use G\Core\Db\UpdateBuilder;
-use G\Core\Http\EndpointInterface;
-use G\Services\User\Validators\UserValidator;
+use G\Core\Http\IOObjectEndpoint;
+use G\Core\Services\ValidatorInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-class UpdateUser implements EndpointInterface
+class UpdateUser extends IOObjectEndpoint
 {
-    /** @var UpdateBuilder */
-    protected $builder;
+    /** @var string  */
+    protected $table;
 
     /**
-     * UpdateUser constructor.
+     * Update constructor.
      *
-     * @param \PDO $pdo
+     * @param string $table
+     * @param UpdateBuilder $builder
+     * @param ValidatorInterface $validator
      */
-    public function __construct(UpdateBuilder $builder)
+    public function __construct($table = "", UpdateBuilder $builder, ValidatorInterface $validator)
     {
-        $this->builder = $builder;
+        parent::__construct($builder, $validator);
+
+        $this->table = $table;
     }
 
     /**
@@ -39,41 +43,13 @@ class UpdateUser implements EndpointInterface
      */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args)
     {
-        /** @var $response \Slim\Http\Response */
-        $body = $request->getParsedBody();
-        $userValidator = new UserValidator($body);
+        $this->response = $response;
 
-        if ($userValidator->validate()) {
-            try {
-                $hashedPassword = password_hash($body['password'], PASSWORD_BCRYPT);
-
-                if ($this->builder
-                    ->setTable('users')
-                    ->addColumn('name', $body['name'])
-                    ->addColumn('username', $body['username'])
-                    ->addColumn('password', $hashedPassword)
-                    ->addColumn('email', $body['email'])
-                    ->setId($args['id'])
-                    ->execute()) {
-
-                    return $response->withJson(array(
-                        "id" => $args['id'],
-                        "name" => $body['name'],
-                        "username" => $body['username'],
-                        "password" => $hashedPassword,
-                        "email" => $body['email']
-                    ));
-
-                } else {
-                    return $response->withJson(array("message" => "User already exists"), 400);
-                }
-
-            } catch (\Exception $e) {
-                return $response->withJson(array("message" => $e->getMessage()), 500);
-            }
-
-        } else {
-            return $response->withJson($userValidator->getErrors(), 400);
-        }
+        return $this->updateObject(
+            $args['id'],
+            array("password" => function ($password) { return password_hash($password, PASSWORD_BCRYPT); }), //Add mutators
+            $this->table, //where are we putting the info - what table?
+            $request->getParsedBody() //What data are we persisting
+        );
     }
 }
